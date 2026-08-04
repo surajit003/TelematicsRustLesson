@@ -1,16 +1,13 @@
-use sea_orm::{
-    DatabaseConnection, ActiveModelTrait, Set,
-    EntityTrait, QueryFilter, QueryOrder, ColumnTrait, PaginatorTrait,
-};
 use crate::entities::tracker_pings;
 use crate::handlers::dtos::NewPing;
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, QueryFilter,
+    QueryOrder, Set,
+};
 
 const PAGE_SIZE: u64 = 10;
 
-pub async fn create_ping(
-    db: &DatabaseConnection,
-    input: NewPing,
-) -> Result<i64, sea_orm::DbErr> {
+pub async fn create_ping(db: &DatabaseConnection, input: NewPing) -> Result<i64, sea_orm::DbErr> {
     let now = chrono::Utc::now().fixed_offset();
 
     let active = tracker_pings::ActiveModel {
@@ -43,4 +40,17 @@ pub async fn list_pings_by_plate(
     let rows = paginator.fetch_page(page.saturating_sub(1)).await?;
 
     Ok((rows, total_pages))
+}
+
+pub async fn get_latest_ping(
+    db: &DatabaseConnection,
+    plate: &str,
+) -> Result<Option<tracker_pings::Model>, sea_orm::DbErr> {
+    let res = tracker_pings::Entity::find()
+        .filter(tracker_pings::Column::NumberPlate.eq(plate))
+        .order_by_desc(tracker_pings::Column::RecordedAt)
+        .one(db)
+        .await?;
+
+    Ok(res)
 }

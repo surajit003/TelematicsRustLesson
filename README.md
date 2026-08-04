@@ -21,6 +21,13 @@ Create a local environment file:
 cp .env.example .env
 ```
 
+Apply database migrations:
+
+```sh
+DATABASE_URL=postgres://telematics:telematics@localhost:5455/telematics \
+  cargo run --manifest-path migration/Cargo.toml -- up
+```
+
 Run the API:
 
 ```sh
@@ -36,6 +43,75 @@ Health check:
 ```sh
 curl http://localhost:3000/
 ```
+
+## Vehicle API
+
+Vehicles are keyed by `number_plate`. The create and update request body is:
+
+```json
+{
+  "number_plate": "KDA123X",
+  "make": "Toyota",
+  "model": "Hilux",
+  "year": 2024
+}
+```
+
+Available endpoints:
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/vehicles` | Create a vehicle and return the created plate |
+| `GET` | `/vehicles` | List all vehicles |
+| `GET` | `/vehicles/{plate}` | Get one vehicle by plate |
+| `PUT` | `/vehicles/{plate}` | Update a vehicle by plate |
+| `DELETE` | `/vehicles/{plate}` | Delete a vehicle by plate |
+
+Create a vehicle:
+
+```sh
+curl -X POST http://localhost:3000/vehicles \
+  -H "Content-Type: application/json" \
+  -d '{
+    "number_plate": "KDA123X",
+    "make": "Toyota",
+    "model": "Hilux",
+    "year": 2024
+  }'
+```
+
+List vehicles:
+
+```sh
+curl http://localhost:3000/vehicles
+```
+
+Get a vehicle:
+
+```sh
+curl http://localhost:3000/vehicles/KDA123X
+```
+
+Update a vehicle:
+
+```sh
+curl -X PUT http://localhost:3000/vehicles/KDA123X \
+  -H "Content-Type: application/json" \
+  -d '{
+    "number_plate": "KDA123X",
+    "make": "Toyota",
+    "model": "Land Cruiser",
+    "year": 2025
+  }'
+```
+
+Delete a vehicle:
+
+```sh
+curl -X DELETE http://localhost:3000/vehicles/KDA123X
+```
+
+## Tracker Ping API
 
 Create a tracker ping:
 

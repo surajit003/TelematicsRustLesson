@@ -1,7 +1,7 @@
 mod entities;
 mod handlers;
-mod services;
 mod routes;
+mod services;
 
 use sea_orm::Database;
 
@@ -11,10 +11,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_url = std::env::var("DATABASE_URL")?;
 
     let db = Database::connect(&db_url).await?;
-    db.get_schema_registry("telematics::entities::*")
-        .sync(&db)
-        .await?;
-    println!("Database ready.");
+    println!("Database connected.");
 
     let app = routes::build_router(db);
 

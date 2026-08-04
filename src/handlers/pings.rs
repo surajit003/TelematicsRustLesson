@@ -1,7 +1,11 @@
-use axum::{extract::{State, Query}, Json, http::StatusCode};
-use sea_orm::DatabaseConnection;
-use crate::handlers::dtos::{NewPing, PingSaved, ListQuery, PingOut, PingList};
+use crate::handlers::dtos::{ListQuery, NewPing, PingList, PingOut, PingSaved};
 use crate::services;
+use axum::{
+    Json,
+    extract::{Query, State},
+    http::StatusCode,
+};
+use sea_orm::DatabaseConnection;
 
 pub async fn health() -> &'static str {
     "Telematics API is running!"
@@ -48,6 +52,31 @@ pub async fn list(
         }
         Err(e) => {
             eprintln!("list failed: {e}");
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
+pub async fn get_ping(
+    State(db): State<DatabaseConnection>,
+    Query(params): Query<ListQuery>,
+) -> Result<Json<PingOut>, StatusCode> {
+    match services::pings::get_latest_ping(&db, &params.plate).await {
+        Ok(Some(ping)) => {
+            let out = PingOut {
+                id: ping.id,
+                number_plate: ping.number_plate,
+                latitude: ping.latitude,
+                longitude: ping.longitude,
+                speed: ping.speed,
+                recorded_at: ping.recorded_at,
+                created_at: ping.created_at,
+            };
+            Ok(Json(out))
+        }
+        Ok(None) => Err(StatusCode::NOT_FOUND),
+        Err(e) => {
+            eprintln!("get_ping failed: {e}");
             Err(StatusCode::INTERNAL_SERVER_ERROR)
         }
     }

@@ -45,3 +45,22 @@ pub struct PingList {
     pub total_pages: u64,
     pub items: Vec<PingOut>,
 }
+
+// Incoming: what the client sends to create or update a vehicle
+#[derive(Debug, Deserialize)]
+pub struct NewVehicle {
+    pub number_plate: String,
+    pub make: String,
+    pub model: String,
+    pub year: i32,
+}
+
+// Outgoing: what we send back in responses
+#[derive(Debug, Serialize)]
+pub struct VehicleOut {
+    pub number_plate: String,
+    pub make: String,
+    pub model: String,
+    pub year: i32,
+    pub created_at: chrono::DateTime<chrono::FixedOffset>,
+}
